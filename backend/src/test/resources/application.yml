@@ -1,0 +1,26 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:rfpmatch-test;MODE=MySQL;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    open-in-view: false
+
+app:
+  sample-data:
+    enabled: false
+
+bid-api:
+  enabled: false
+  base-url: ""
+  operation: ""
+  service-key: ""
+  # 테스트 중에는 스케줄러가 돌지 않도록 1년에 한 번만 도는 스케줄로 둔다.
+  cron: "0 0 0 1 1 *"
+
+logging:
+  level:
+    com.rfpmatch: INFO

@@ -1,0 +1,43 @@
+services:
+  db:
+    image: mysql:8.0
+    container_name: rfp-match-db
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
+      MYSQL_DATABASE: rfpmatch
+      MYSQL_USER: rfpmatch
+      MYSQL_PASSWORD: ${DB_PASSWORD:-rfpmatch}
+      TZ: Asia/Seoul
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build: ./backend
+    container_name: rfp-match-api
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: mysql
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_NAME: rfpmatch
+      DB_USERNAME: rfpmatch
+      DB_PASSWORD: ${DB_PASSWORD:-rfpmatch}
+      # 입찰공고 Open API 연동 정보. 저장소에 값을 넣지 말고 .env 나 배포 환경변수로 주입한다.
+      BID_API_BASE_URL: ${BID_API_BASE_URL:-}
+      BID_API_OPERATION: ${BID_API_OPERATION:-}
+      BID_API_SERVICE_KEY: ${BID_API_SERVICE_KEY:-}
+    ports:
+      - "8080:8080"
+
+volumes:
+  mysql-data:
