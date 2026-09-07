@@ -79,7 +79,25 @@ docker compose up -d          # MySQL + API
 
 `mysql` 프로필에서는 예시 데이터가 들어가지 않고, 공고 수집 스케줄러가 켜집니다.
 
-### 4.3 외부 Open API 설정
+### 4.3 로컬 MySQL 검증
+
+H2는 `MODE=MySQL`로 문법만 흉내 낼 뿐이라, 운영에 쓸 MySQL에서 실제로 뜨는지는 따로 확인해야 한다.
+
+```bash
+# 1) MySQL 컨테이너만 띄운다 (compose 의 db 서비스)
+docker compose up -d db
+
+# 2) mysql 프로필로 기동 — 예시 데이터를 넣고, 인증키가 없으므로 수집 스케줄러는 끈다
+cd backend
+SAMPLE_DATA=true BID_API_ENABLED=false mvn spring-boot:run -Dspring-boot.run.profiles=mysql
+```
+
+확인할 것: 기동 로그에 스키마 생성이 보이는지, `GET /api/v1/bids` 목록 정렬이 맞는지,
+매칭 실행 후 한글 판정 근거가 깨지지 않는지.
+
+자동화된 검증은 Testcontainers 통합 테스트로 대신할 수 있다 → [8. 테스트](#8-테스트)
+
+### 4.4 외부 Open API 설정
 
 | 환경변수 | 설명 |
 |---|---|
@@ -198,12 +216,32 @@ frontend/src/
 ## 8. 테스트
 
 ```bash
-cd backend && mvn test     # 47건
+cd backend
+mvn test                    # 47건 — H2 기반, Docker 불필요
+mvn verify -Pmysql-test     # 위 + MySQL 8 컨테이너 호환성 검증 (Docker 데몬 필요)
 ```
+
+**H2 기반 (`mvn test`)**
 
 - 단위 정규화·CC등급 파싱·항목 매핑·판정 규칙 단위 테스트
 - 공고 등록 → 요구사항 입력 → 제품 등록 → 매칭 → 갭분석 조회까지 API 통합 테스트
 - Open API 응답 파싱(배열/`items.item` 래핑/XML 에러/HTTP 오류/미설정)과 동기화 upsert·부분 실패 테스트
+
+**MySQL 8 기반 (`mvn verify -Pmysql-test`)**
+
+`MySqlCompatibilityIT`가 Testcontainers로 운영과 같은 MySQL 8을 띄워 방언 차이를 확인한다.
+H2가 잡아 주지 못하는 지점들이다.
+
+| 검증 | 왜 필요한가 |
+|---|---|
+| `ddl-auto=update` 스키마 생성 | 운영과 같은 경로로 5개 테이블이 실제로 만들어지는지 |
+| 한글 저장·조회 | utf8mb4 설정이 실제로 먹는지 |
+| 마감일 null 정렬 | `nulls last`는 MySQL에 없는 구문이라 Hibernate가 우회 생성해야 한다 |
+| 공고번호 유니크 제약 | 제약이 실제로 걸려 중복 저장을 막는지 |
+| 매칭 결과 왕복 | enum 문자열 저장과 한글 판정 근거가 그대로 돌아오는지 |
+| 목록 집계 쿼리 | `group by` / `distinct` 집계가 MySQL에서 동작하는지 |
+
+통합 테스트(`*IT`)는 surefire가 수집하지 않으므로 `mvn test`는 Docker 없이도 그대로 돈다.
 
 ## 9. 로드맵
 

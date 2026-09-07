@@ -87,7 +87,9 @@ spring:
 
 app:
   sample-data:
-    enabled: false
+    # MySQL로 처음 붙일 때는 SAMPLE_DATA=true 로 띄우면 예시 데이터로 화면까지 확인할 수 있다.
+    enabled: ${SAMPLE_DATA:false}
 
 bid-api:
-  enabled: true
+  # 인증키가 없으면 스케줄러가 경고만 남기고 건너뛴다. 로컬 검증 중에는 BID_API_ENABLED=false 로 꺼도 된다.
+  enabled: ${BID_API_ENABLED:true}

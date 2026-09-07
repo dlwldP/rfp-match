@@ -63,6 +63,23 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <!-- 운영 DB(MySQL)에서만 드러나는 차이를 잡기 위한 통합 테스트용. 실행에 Docker 데몬이 필요하다. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-testcontainers</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>mysql</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -95,4 +112,31 @@
             </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <!--
+            MySQL 통합 테스트(*IT)는 Docker 데몬이 필요해 기본 빌드에서 제외된다.
+            surefire 는 *IT 를 수집하지 않으므로 `mvn test` 는 H2 단위/통합 테스트만 돌고,
+            Docker 가 있는 환경에서 `mvn verify -Pmysql-test` 로 MySQL 검증까지 수행한다.
+        -->
+        <profile>
+            <id>mysql-test</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-failsafe-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>integration-test</goal>
+                                    <goal>verify</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>
