@@ -95,9 +95,11 @@ export interface MatchSummary {
   unknown: number;
   /** 충족률(%). 부분충족은 0.5건으로 계산된다. */
   satisfactionRate: number;
+  confidenceRate: number;
   mandatoryUnsatisfied: number;
   /** 필수 요구사항에 미충족이 없으면 true */
   biddable: boolean;
+  requiresManualReview: boolean;
 }
 
 export interface MatchResult {

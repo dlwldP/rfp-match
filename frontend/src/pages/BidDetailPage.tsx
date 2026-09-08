@@ -207,6 +207,13 @@ export function BidDetailPage() {
         {match ? (
           <>
             <GapAnalysisChart summary={match.summary} />
+            <div className={`alert ${match.summary.requiresManualReview ? 'alert--warn' : 'alert--info'}`}>
+              <strong>{match.summary.requiresManualReview ? '담당자 검토 필요' : '자동 판정 완료'}</strong>
+              {' '}
+              {match.summary.requiresManualReview
+                ? `확인 불가 ${match.summary.unknown}건 또는 필수 미충족 ${match.summary.mandatoryUnsatisfied}건이 있습니다. 각 항목의 판정 근거를 검토하세요.`
+                : '모든 항목에 제품 사양과 판정 근거가 연결되었습니다. 최종 입찰 전 원문 RFP를 확인하세요.'}
+            </div>
             <div className="table-scroll" style={{ marginTop: 18 }}>
               <table>
                 <thead>
@@ -230,7 +237,10 @@ export function BidDetailPage() {
                       <td>{item.description}</td>
                       <td className="mono">{item.requiredValue}</td>
                       <td className="mono">{item.productValue ?? '-'}</td>
-                      <td className="muted">{item.note}</td>
+                      <td className="match-reason">
+                        <strong>{item.status}</strong>
+                        <span>{item.note}</span>
+                      </td>
                     </tr>
                   ))}
                 </tbody>

@@ -41,6 +41,13 @@ export function GapAnalysisChart({ summary }: Props) {
           </div>
         </div>
         <div className="stat">
+          <div className="stat__label">자동 판정 신뢰도</div>
+          <div className="stat__value">
+            {summary.confidenceRate}
+            <small>%</small>
+          </div>
+        </div>
+        <div className="stat">
           <div className="stat__label">전체 요구사항</div>
           <div className="stat__value">
             {summary.totalCount}

@@ -70,8 +70,11 @@ class MatchApiIntegrationTest {
                 .andExpect(jsonPath("$.summary.satisfied").value(2))
                 .andExpect(jsonPath("$.summary.unsatisfied").value(1))
                 .andExpect(jsonPath("$.summary.unknown").value(1))
+                .andExpect(jsonPath("$.summary.confidenceRate").value(75.0))
                 .andExpect(jsonPath("$.summary.mandatoryUnsatisfied").value(1))
-                .andExpect(jsonPath("$.summary.biddable").value(false));
+                .andExpect(jsonPath("$.summary.biddable").value(false))
+                .andExpect(jsonPath("$.summary.requiresManualReview").value(true))
+                .andExpect(jsonPath("$.results[0].note").isNotEmpty());
 
         // 저장된 결과를 그대로 다시 조회할 수 있어야 한다.
         mockMvc.perform(get("/api/v1/bids/{bidId}/match-result", bidId).param("productId", productId.toString()))

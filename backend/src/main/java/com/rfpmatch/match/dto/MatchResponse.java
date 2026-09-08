@@ -67,8 +67,10 @@ public record MatchResponse(
             int unsatisfied,
             int unknown,
             double satisfactionRate,
+            double confidenceRate,
             int mandatoryUnsatisfied,
-            boolean biddable) {
+            boolean biddable,
+            boolean requiresManualReview) {
 
         public static MatchSummary of(List<RequirementItem> requirements, List<MatchResult> results) {
             int total = results.size();
@@ -88,9 +90,13 @@ public record MatchResponse(
 
             double rate = total == 0 ? 0d
                     : Math.round((satisfied + partial * 0.5) / total * 1000) / 10d;
+            double confidenceRate = total == 0 ? 0d
+                    : Math.round((total - unknown) / (double) total * 1000) / 10d;
+            boolean requiresManualReview = unknown > 0 || mandatoryUnsatisfied > 0;
 
             return new MatchSummary(total, satisfied, partial, unsatisfied, unknown,
-                    rate, mandatoryUnsatisfied, mandatoryUnsatisfied == 0);
+                    rate, confidenceRate, mandatoryUnsatisfied, mandatoryUnsatisfied == 0,
+                    requiresManualReview);
         }
 
         private static int count(List<MatchResult> results, MatchStatus status) {
